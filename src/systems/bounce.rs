@@ -6,7 +6,9 @@ use amethyst::{
 };
 
 use crate::audio::{play_bounce_sound, Sounds};
-use crate::pong::{Ball, Paddle, Side, ARENA_HEIGHT};
+use crate::components::ball::Ball;
+use crate::components::paddle::{Paddle, Side};
+use crate::pong::ARENA_HEIGHT;
 
 pub struct BounceSystem;
 

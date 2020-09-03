@@ -8,7 +8,9 @@ use amethyst::{
 };
 
 use crate::audio::{play_score_sound, Sounds};
-use crate::pong::{Ball, ScoreBoard, ScoreText, ARENA_HEIGHT, ARENA_WIDTH};
+use crate::components::ball::Ball;
+use crate::components::scoreboard::{ScoreBoard, ScoreText};
+use crate::pong::{ARENA_HEIGHT, ARENA_WIDTH};
 
 #[derive(SystemDesc)]
 pub struct WinnerSystem;

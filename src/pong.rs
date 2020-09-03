@@ -1,13 +1,15 @@
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
     core::{timing::Time, transform::Transform},
-    ecs::{Component, DenseVecStorage, Entity},
+    input::{is_key_down, VirtualKeyCode},
     prelude::*,
-    renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
-    ui::{Anchor, LineMode, TtfFormat, UiText, UiTransform},
+    renderer::{Camera, ImageFormat, SpriteSheet, SpriteSheetFormat, Texture},
 };
 
 use crate::audio::init_audio;
+use crate::components::paddle::init_paddles;
+use crate::components::ball::init_ball;
+use crate::components::scoreboard::init_scoreboard;
 
 pub const ARENA_HEIGHT: f32 = 100.0;
 pub const ARENA_WIDTH: f32 = 100.0;
@@ -44,6 +46,29 @@ impl SimpleState for Pong {
         }
         Trans::None
     }
+
+    fn handle_event(&mut self, _data: StateData<'_, GameData<'_, '_>>, event: StateEvent) -> SimpleTrans {
+        if let StateEvent::Window(event) = &event {
+            if is_key_down(&event, VirtualKeyCode::Escape) {
+                println!("State chagne -> Paused");
+                return Trans::Push(Box::new(PausedState));
+            }
+        }
+        Trans::None
+    }
+}
+
+struct PausedState;
+impl SimpleState for PausedState {
+    fn handle_event(&mut self, _data: StateData<'_, GameData<'_, '_>>, event: StateEvent) -> SimpleTrans {
+        if let StateEvent::Window(event) = &event {
+            if is_key_down(&event, VirtualKeyCode::Escape) {
+                println!("State chagne -> Gameplay!");
+                return Trans::Pop;
+            }
+        }
+        Trans::None
+    }
 }
 
 fn init_camera(world: &mut World) {
@@ -54,168 +79,6 @@ fn init_camera(world: &mut World) {
         .with(Camera::standard_2d(ARENA_WIDTH, ARENA_HEIGHT))
         .with(transform)
         .build();
-}
-
-pub const PADDLE_HEIGHT: f32 = 16.0;
-pub const PADDLE_WIDTH: f32 = 4.0;
-
-#[derive(PartialEq, Eq)]
-pub enum Side {
-    Left,
-    Right,
-}
-pub const PADDLE_VELOCITY: f32 = 45.0;
-pub struct Paddle {
-    pub side: Side,
-    pub width: f32,
-    pub height: f32,
-}
-
-impl Paddle {
-    fn new(side: Side) -> Paddle {
-        Paddle {
-            side,
-            width: PADDLE_WIDTH,
-            height: PADDLE_HEIGHT,
-        }
-    }
-}
-
-impl Component for Paddle {
-    type Storage = DenseVecStorage<Self>;
-}
-
-fn init_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
-    let mut left_transform = Transform::default();
-    let mut right_transform = Transform::default();
-
-    let y = ARENA_HEIGHT / 2.0;
-    left_transform.set_translation_xyz(PADDLE_WIDTH * 0.5, y, 0.0);
-    right_transform.set_translation_xyz(ARENA_WIDTH - PADDLE_WIDTH * 0.5, y, 0.0);
-
-    let sprite_render = SpriteRender::new(sprite_sheet_handle, 0);
-
-    world
-        .create_entity()
-        .with(sprite_render.clone())
-        .with(Paddle::new(Side::Left))
-        // .with(AI {
-        //     velocity: 0.0,
-        // })
-        .with(left_transform)
-        .build();
-
-    world
-        .create_entity()
-        .with(sprite_render)
-        .with(Paddle::new(Side::Right))
-        .with(AI { velocity: 0.0 })
-        .with(right_transform)
-        .build();
-}
-
-pub struct AI {
-    pub velocity: f32,
-}
-impl Component for AI {
-    type Storage = DenseVecStorage<Self>;
-}
-
-pub const BALL_VELOCITY_X: f32 = 75.0;
-pub const BALL_VELOCITY_Y: f32 = 50.0;
-pub const BALL_RADIUS: f32 = 2.0;
-pub struct Ball {
-    pub velocity: [f32; 2],
-    pub radius: f32,
-}
-impl Component for Ball {
-    type Storage = DenseVecStorage<Self>;
-}
-
-fn init_ball(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
-    let mut transform = Transform::default();
-    transform.set_translation_xyz(ARENA_WIDTH / 2.0, ARENA_HEIGHT / 2.0, 0.0);
-
-    let sprite_render = SpriteRender::new(sprite_sheet_handle, 1);
-
-    world
-        .create_entity()
-        .with(sprite_render)
-        .with(Ball {
-            radius: BALL_RADIUS,
-            velocity: [BALL_VELOCITY_X, BALL_VELOCITY_Y],
-        })
-        .with(transform)
-        .build();
-}
-
-#[derive(Default)]
-pub struct ScoreBoard {
-    pub score_left: i32,
-    pub score_right: i32,
-}
-
-pub struct ScoreText {
-    pub p1_score: Entity,
-    pub p2_score: Entity,
-}
-
-fn init_scoreboard(world: &mut World) {
-    let font = world.read_resource::<Loader>().load(
-        "font/square.ttf",
-        TtfFormat,
-        (),
-        &world.read_resource(),
-    );
-
-    let p1_transform = UiTransform::new(
-        "P1".to_string(),
-        Anchor::TopMiddle,
-        Anchor::TopMiddle,
-        -50.,
-        -50.,
-        1.,
-        200.,
-        50.,
-    );
-    let p2_transform = UiTransform::new(
-        "P2".to_string(),
-        Anchor::TopMiddle,
-        Anchor::TopMiddle,
-        50.,
-        -50.,
-        1.,
-        200.,
-        50.,
-    );
-
-    let p1_score = world
-        .create_entity()
-        .with(p1_transform)
-        .with(UiText::new(
-            font.clone(),
-            "0".to_string(),
-            [1., 1., 1., 1.],
-            50.,
-            LineMode::Single,
-            Anchor::Middle,
-        ))
-        .build();
-
-    let p2_score = world
-        .create_entity()
-        .with(p2_transform)
-        .with(UiText::new(
-            font.clone(),
-            "0".to_string(),
-            [1., 1., 1., 1.],
-            50.,
-            LineMode::Single,
-            Anchor::Middle,
-        ))
-        .build();
-
-    world.insert(ScoreText { p1_score, p2_score });
 }
 
 fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {

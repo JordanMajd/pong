@@ -1,4 +1,5 @@
-use crate::pong::{Ball, AI, PADDLE_VELOCITY};
+use crate::components::{ai::AI, ball::Ball, paddle::PADDLE_VELOCITY};
+
 use amethyst::core::timing::Time;
 use amethyst::core::Transform;
 use amethyst::ecs::{Join, Read, ReadStorage, System, WriteStorage};
