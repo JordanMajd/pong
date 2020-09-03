@@ -1,9 +1,8 @@
 use amethyst::{
     assets::AssetStorage,
     audio::{output::Output, Source},
-    core::{SystemDesc, Transform},
-    derive::SystemDesc,
-    ecs::{Join, Read, ReadExpect, ReadStorage, System, SystemData, World, WriteStorage},
+    core::Transform,
+    ecs::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
 };
 
 use crate::audio::{play_bounce_sound, Sounds};

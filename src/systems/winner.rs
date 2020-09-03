@@ -2,9 +2,8 @@ use amethyst::{
     assets::AssetStorage,
     audio::{output::Output, Source},
     core::transform::Transform,
-    core::SystemDesc,
     derive::SystemDesc,
-    ecs::{Join, Read, ReadExpect, System, SystemData, World, Write, WriteStorage},
+    ecs::{Join, Read, ReadExpect, System, SystemData, Write, WriteStorage},
     ui::UiText,
 };
 

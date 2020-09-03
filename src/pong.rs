@@ -64,7 +64,7 @@ pub enum Side {
     Left,
     Right,
 }
-pub const PADDLE_VELOCITY: f32 = 1.2;
+pub const PADDLE_VELOCITY: f32 = 45.0;
 pub struct Paddle {
     pub side: Side,
     pub width: f32,
@@ -99,9 +99,9 @@ fn init_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
         .create_entity()
         .with(sprite_render.clone())
         .with(Paddle::new(Side::Left))
-        .with(AI {
-            velocity: 0.0,
-        })
+        // .with(AI {
+        //     velocity: 0.0,
+        // })
         .with(left_transform)
         .build();
 
@@ -109,9 +109,7 @@ fn init_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
         .create_entity()
         .with(sprite_render)
         .with(Paddle::new(Side::Right))
-        .with(AI {
-            velocity: 0.0,
-        })
+        .with(AI { velocity: 0.0 })
         .with(right_transform)
         .build();
 }

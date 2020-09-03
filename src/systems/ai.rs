@@ -1,7 +1,7 @@
-use amethyst::core::Transform;
+use crate::pong::{Ball, AI, PADDLE_VELOCITY};
 use amethyst::core::timing::Time;
-use amethyst::ecs::{Read, Join, ReadStorage, System, WriteStorage};
-use crate::pong::{Ball, AI, PADDLE_VELOCITY };
+use amethyst::core::Transform;
+use amethyst::ecs::{Join, Read, ReadStorage, System, WriteStorage};
 
 pub struct AIBigBrainSystem;
 impl<'s> System<'s> for AIBigBrainSystem {
@@ -13,14 +13,14 @@ impl<'s> System<'s> for AIBigBrainSystem {
     fn run(&mut self, (mut ais, balls, transforms): Self::SystemData) {
         for (ai, at) in (&mut ais, &transforms).join() {
             let ay = at.translation().y;
-            for(_, bt) in (&balls, &transforms).join() {
+            for (_, bt) in (&balls, &transforms).join() {
                 let by = bt.translation().y;
-                let mut vel = 100.0;
-                if  ay >= by {
+                let mut vel = PADDLE_VELOCITY;
+                if ay >= by {
                     vel = -vel;
                 }
                 ai.velocity = vel;
-            } 
+            }
         }
     }
 }
