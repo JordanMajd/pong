@@ -1,0 +1,11 @@
+[package]
+name = "ameeeethyst"
+version = "0.1.0"
+authors = ["Jordan Majd <jordan@madtitanstudios.com>"]
+edition = "2018"
+
+
+[dependencies]
+[dependencies.amethyst]
+version = "0.15"
+features = ["vulkan"]
