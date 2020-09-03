@@ -19,6 +19,48 @@ pub const ARENA_HEIGHT: f32 = 100.0;
 pub const ARENA_WIDTH: f32 = 100.0;
 
 #[derive(Default)]
+pub struct MainMenuState<'a, 'b> {
+    dispatcher: Option<Dispatcher<'a, 'b>>,
+}
+impl<'a, 'b> SimpleState for MainMenuState<'a, 'b> {
+    fn on_start(&mut self, mut data: StateData<'_, GameData<'_, '_>>) {
+        let world = &mut data.world;
+        let mut dispatcher_builder = DispatcherBuilder::new();
+
+        // reuse main thread pool
+        let mut dispatcher = dispatcher_builder
+            .with_pool((*world.read_resource::<ArcThreadPool>()).clone())
+            .build();
+        dispatcher.setup(world);
+
+        self.dispatcher = Some(dispatcher);
+        init_audio(world);
+        init_camera(world);
+    }
+
+    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
+        if let Some(dispatcher) = self.dispatcher.as_mut() {
+            dispatcher.dispatch(&data.world);
+        }
+        Trans::None
+    }
+
+    fn handle_event(
+        &mut self,
+        _data: StateData<'_, GameData<'_, '_>>,
+        event: StateEvent,
+    ) -> SimpleTrans {
+        if let StateEvent::Window(event) = &event {
+            if is_key_down(&event, VirtualKeyCode::Return) {
+                println!("State change -> GameplayState");
+                return Trans::Replace(Box::new(GameplayState::default()));
+            }
+        }
+        Trans::None
+    }
+}
+
+#[derive(Default)]
 pub struct GameplayState<'a, 'b> {
     dispatcher: Option<Dispatcher<'a, 'b>>,
     ball_spawn_timer: Option<f32>,
@@ -29,11 +71,7 @@ impl<'a, 'b> SimpleState for GameplayState<'a, 'b> {
         let world = &mut data.world;
 
         let mut dispatcher_builder = DispatcherBuilder::new();
-        dispatcher_builder.add(
-            systems::PaddleSystem,
-            systems::PADDLE_SYSTEM,
-            &[],
-        );
+        dispatcher_builder.add(systems::PaddleSystem, systems::PADDLE_SYSTEM, &[]);
         dispatcher_builder.add(systems::MoveBallSystem, "ball_system", &[]);
         dispatcher_builder.add(
             systems::BounceSystem,
@@ -60,9 +98,7 @@ impl<'a, 'b> SimpleState for GameplayState<'a, 'b> {
         let sprite_sheet_handle = load_sprite_sheet(world);
         self.sprite_sheet_handle
             .replace(sprite_sheet_handle.clone());
-        init_audio(world);
         init_paddles(world, self.sprite_sheet_handle.clone().unwrap());
-        init_camera(world);
         init_scoreboard(world);
     }
 
@@ -95,7 +131,7 @@ impl<'a, 'b> SimpleState for GameplayState<'a, 'b> {
     ) -> SimpleTrans {
         if let StateEvent::Window(event) = &event {
             if is_key_down(&event, VirtualKeyCode::Escape) {
-                println!("State change -> Paused");
+                println!("State change -> PauseState");
                 return Trans::Push(Box::new(PauseState));
             }
         }
@@ -116,7 +152,7 @@ impl SimpleState for PauseState {
     ) -> SimpleTrans {
         if let StateEvent::Window(event) = &event {
             if is_key_down(&event, VirtualKeyCode::Escape) {
-                println!("State change -> Gameplay!");
+                println!("State change -> GameplayState");
                 return Trans::Pop;
             }
         }

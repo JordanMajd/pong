@@ -1,6 +1,16 @@
 # Amethyst
 
 
+## TODO
+
+- Main Menu State
+- Game Over State
+- Pause Menu Text
+- Configured values
+- Settings Menu
+- Saving / resuming
+- Networking
+
 ## Resources 
 
 - [Amethyst Book](https://book.amethyst.rs)

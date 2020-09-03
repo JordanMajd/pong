@@ -18,7 +18,7 @@ mod systems;
 mod components;
 
 use crate::audio::Music;
-use crate::pong::GameplayState;
+use crate::pong::MainMenuState;
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
@@ -49,7 +49,7 @@ fn main() -> amethyst::Result<()> {
             &[],
         );
     let assets_dir = app_root.join("assets");
-    let mut game = Application::new(assets_dir, GameplayState::default(), game_data)?;
+    let mut game = Application::new(assets_dir, MainMenuState::default(), game_data)?;
     game.run();
 
     Ok(())
