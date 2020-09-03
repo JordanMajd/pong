@@ -23,6 +23,7 @@ pub struct Paddle {
     pub side: Side,
     pub width: f32,
     pub height: f32,
+    pub velocity: f32,
 }
 
 impl Paddle {
@@ -31,6 +32,7 @@ impl Paddle {
             side,
             width: PADDLE_WIDTH,
             height: PADDLE_HEIGHT,
+            velocity: 0.0,
         }
     }
 }
@@ -63,7 +65,7 @@ pub fn init_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>)
         .create_entity()
         .with(sprite_render)
         .with(Paddle::new(Side::Right))
-        .with(AI { velocity: 0.0 })
+        .with(AI)
         .with(right_transform)
         .build();
 }

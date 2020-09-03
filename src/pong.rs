@@ -1,5 +1,6 @@
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
+    audio::AudioSink,
     core::{timing::Time, transform::Transform},
     input::{is_key_down, VirtualKeyCode},
     prelude::*,
@@ -7,19 +8,19 @@ use amethyst::{
 };
 
 use crate::audio::init_audio;
-use crate::components::paddle::init_paddles;
 use crate::components::ball::init_ball;
+use crate::components::paddle::init_paddles;
 use crate::components::scoreboard::init_scoreboard;
 
 pub const ARENA_HEIGHT: f32 = 100.0;
 pub const ARENA_WIDTH: f32 = 100.0;
 
 #[derive(Default)]
-pub struct Pong {
+pub struct GameplayState {
     ball_spawn_timer: Option<f32>,
     sprite_sheet_handle: Option<Handle<SpriteSheet>>,
 }
-impl SimpleState for Pong {
+impl SimpleState for GameplayState {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
         self.ball_spawn_timer.replace(4.0);
@@ -30,6 +31,10 @@ impl SimpleState for Pong {
         init_paddles(world, self.sprite_sheet_handle.clone().unwrap());
         init_camera(world);
         init_scoreboard(world);
+    }
+
+    fn on_resume(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+        data.world.read_resource::<AudioSink>().play();
     }
 
     fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
@@ -47,20 +52,32 @@ impl SimpleState for Pong {
         Trans::None
     }
 
-    fn handle_event(&mut self, _data: StateData<'_, GameData<'_, '_>>, event: StateEvent) -> SimpleTrans {
+    fn handle_event(
+        &mut self,
+        _data: StateData<'_, GameData<'_, '_>>,
+        event: StateEvent,
+    ) -> SimpleTrans {
         if let StateEvent::Window(event) = &event {
             if is_key_down(&event, VirtualKeyCode::Escape) {
-                println!("State chagne -> Paused");
-                return Trans::Push(Box::new(PausedState));
+                println!("State change -> Paused");
+                return Trans::Push(Box::new(PauseState));
             }
         }
         Trans::None
     }
 }
 
-struct PausedState;
-impl SimpleState for PausedState {
-    fn handle_event(&mut self, _data: StateData<'_, GameData<'_, '_>>, event: StateEvent) -> SimpleTrans {
+struct PauseState;
+impl SimpleState for PauseState {
+    fn on_start(&mut self, data: StateData<GameData>) {
+        data.world.read_resource::<AudioSink>().pause();
+    }
+
+    fn handle_event(
+        &mut self,
+        _data: StateData<'_, GameData<'_, '_>>,
+        event: StateEvent,
+    ) -> SimpleTrans {
         if let StateEvent::Window(event) = &event {
             if is_key_down(&event, VirtualKeyCode::Escape) {
                 println!("State chagne -> Gameplay!");

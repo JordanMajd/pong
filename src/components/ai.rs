@@ -1,8 +1,7 @@
-use amethyst::ecs::{Component, DenseVecStorage};
+use amethyst::ecs::{Component, NullStorage};
 
-pub struct AI {
-    pub velocity: f32,
-}
+#[derive(Default)]
+pub struct AI;
 impl Component for AI {
-    type Storage = DenseVecStorage<Self>;
+    type Storage = NullStorage<Self>;
 }

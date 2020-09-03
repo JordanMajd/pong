@@ -1,18 +1,25 @@
-use crate::components::{ai::AI, ball::Ball, paddle::PADDLE_VELOCITY};
+use crate::components::{
+    ai::AI,
+    ball::Ball,
+    paddle::{Paddle, PADDLE_VELOCITY},
+};
 
-use amethyst::core::timing::Time;
-use amethyst::core::Transform;
-use amethyst::ecs::{Join, Read, ReadStorage, System, WriteStorage};
+use amethyst::{
+    core::{timing::Time, Transform},
+    ecs::{Join, Read, ReadStorage, System, WriteStorage},
+};
 
 pub struct AIBigBrainSystem;
 impl<'s> System<'s> for AIBigBrainSystem {
     type SystemData = (
-        WriteStorage<'s, AI>,
+        ReadStorage<'s, AI>,
         ReadStorage<'s, Ball>,
+        WriteStorage<'s, Paddle>,
         ReadStorage<'s, Transform>,
+        Read<'s, Time>,
     );
-    fn run(&mut self, (mut ais, balls, transforms): Self::SystemData) {
-        for (ai, at) in (&mut ais, &transforms).join() {
+    fn run(&mut self, (ais, balls, mut paddles, transforms, time): Self::SystemData) {
+        for (_, paddle, at) in (&ais, &mut paddles, &transforms).join() {
             let ay = at.translation().y;
             for (_, bt) in (&balls, &transforms).join() {
                 let by = bt.translation().y;
@@ -20,22 +27,8 @@ impl<'s> System<'s> for AIBigBrainSystem {
                 if ay >= by {
                     vel = -vel;
                 }
-                ai.velocity = vel;
+                paddle.velocity = vel * time.delta_seconds();
             }
-        }
-    }
-}
-
-pub struct AIMoveSystem;
-impl<'s> System<'s> for AIMoveSystem {
-    type SystemData = (
-        WriteStorage<'s, Transform>,
-        ReadStorage<'s, AI>,
-        Read<'s, Time>,
-    );
-    fn run(&mut self, (mut transforms, ais, time): Self::SystemData) {
-        for (ai, transform) in (&ais, &mut transforms).join() {
-            transform.prepend_translation_y(ai.velocity * time.delta_seconds());
         }
     }
 }
