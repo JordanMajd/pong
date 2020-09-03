@@ -1,4 +1,5 @@
 use amethyst::{
+    audio::{AudioBundle, DjSystemDesc},
     core::transform::TransformBundle,
     input::{InputBundle, StringBindings},
     prelude::*,
@@ -11,8 +12,11 @@ use amethyst::{
     utils::application_root_dir,
 };
 
+mod audio;
 mod pong;
 mod systems;
+
+use crate::audio::Music;
 use crate::pong::Pong;
 
 fn main() -> amethyst::Result<()> {
@@ -36,11 +40,13 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(rendering_bundle)?
         .with_bundle(input_bundle)?
         .with_bundle(TransformBundle::new())?
+        .with_bundle(AudioBundle::default())?
         .with_bundle(UiBundle::<StringBindings>::new())?
         .with(systems::PaddleSystem, "paddle_system", &["input_system"])
         .with(systems::MoveBallSystem, "ball_system", &[])
         .with(systems::BounceSystem, "collision_system", &["paddle_system", "ball_system",])
-        .with(systems::WinnerSystem, "winner_system", &["ball_system"]);
+        .with(systems::WinnerSystem, "winner_system", &["ball_system"])
+        .with_system_desc(DjSystemDesc::new(|music: &mut Music| music.music.next()), "dj_system", &[],);
     let assets_dir = app_root.join("assets");
     let mut game = Application::new(assets_dir, Pong::default(), game_data)?;
     game.run();
