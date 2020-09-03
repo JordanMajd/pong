@@ -43,20 +43,6 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(TransformBundle::new())?
         .with_bundle(AudioBundle::default())?
         .with_bundle(UiBundle::<StringBindings>::new())?
-        .with(systems::PaddleSystem, systems::PADDLE_SYSTEM, &["input_system"])
-        .with(systems::MoveBallSystem, "ball_system", &[])
-        .with(
-            systems::BounceSystem,
-            "collision_system",
-            &[systems::PADDLE_SYSTEM, "ball_system"],
-        )
-        .with(systems::WinnerSystem, "winner_system", &["ball_system"])
-        .with(systems::AIBigBrainSystem, "ai_big_brain_system", &[])
-        .with(
-            systems::PaddleMoveSystem,
-            systems::PADDLE_MOVE_SYSTEM,
-            &[systems::PADDLE_SYSTEM],
-        )
         .with_system_desc(
             DjSystemDesc::new(|music: &mut Music| music.music.next()),
             "dj_system",
