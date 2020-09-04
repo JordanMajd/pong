@@ -1,6 +1,6 @@
 use amethyst::{
     audio::{AudioBundle, DjSystemDesc},
-    core::transform::TransformBundle,
+    core::{transform::TransformBundle, HideHierarchySystemDesc},
     input::{InputBundle, StringBindings},
     prelude::*,
     renderer::{
@@ -13,12 +13,12 @@ use amethyst::{
 };
 
 mod audio;
+mod components;
 mod pong;
 mod systems;
-mod components;
 
 use crate::audio::Music;
-use crate::pong::MainMenuState;
+use crate::pong::LoadingState;
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
@@ -47,9 +47,11 @@ fn main() -> amethyst::Result<()> {
             DjSystemDesc::new(|music: &mut Music| music.music.next()),
             "dj_system",
             &[],
-        );
+        )
+        .with_system_desc(HideHierarchySystemDesc::default(), "hide_hierarchy", &[]);
+
     let assets_dir = app_root.join("assets");
-    let mut game = Application::new(assets_dir, MainMenuState::default(), game_data)?;
+    let mut game = Application::new(assets_dir, LoadingState::default(), game_data)?;
     game.run();
 
     Ok(())

@@ -1,5 +1,5 @@
 use amethyst::{
-    assets::{AssetStorage, Loader},
+    assets::{ProgressCounter, AssetStorage, Loader},
     audio::{output::Output, AudioSink, OggFormat, Source, SourceHandle},
     ecs::{World, WorldExt},
 };
@@ -22,28 +22,27 @@ pub struct Music {
     pub music: Cycle<IntoIter<SourceHandle>>,
 }
 
-fn load_audio_track(loader: &Loader, world: &World, file: &str) -> SourceHandle {
-    loader.load(file, OggFormat, (), &world.read_resource())
+fn load_audio_track(loader: &Loader, progress: &mut ProgressCounter, world: &World, file: &str) -> SourceHandle {
+    loader.load(file, OggFormat, progress, &world.read_resource())
 }
 
-pub fn init_audio(world: &mut World) {
+pub fn init_audio(world: &mut World, progress: &mut ProgressCounter) {
     let (sound_effect, music) = {
         let loader = world.read_resource::<Loader>();
-
         let mut sink = world.write_resource::<AudioSink>();
         sink.set_volume(0.25);
 
         let music = MUSIC_TRACKS
             .iter()
-            .map(|file| load_audio_track(&loader, &world, file))
+            .map(|file| load_audio_track(&loader, progress, &world, file))
             .collect::<Vec<_>>()
             .into_iter()
             .cycle();
         let music = Music { music };
 
         let sound = Sounds {
-            bounce_sfx: load_audio_track(&loader, &world, BOUNCE_SOUND),
-            score_sfx: load_audio_track(&loader, &world, SCORE_SOUND),
+            bounce_sfx: load_audio_track(&loader, progress, &world, BOUNCE_SOUND),
+            score_sfx: load_audio_track(&loader, progress, &world, SCORE_SOUND),
         };
         (sound, music)
     };
