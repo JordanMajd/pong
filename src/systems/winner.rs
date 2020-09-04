@@ -50,8 +50,8 @@ impl<'s> System<'s> for WinnerSystem {
             };
 
             if did_hit {
-                ball.velocity[0] = -ball.velocity[0];
                 play_score_sound(&*sounds, &storage, audio_output.as_deref());
+                ball.velocity[0] = -ball.velocity[0];
                 transform.set_translation_x(ARENA_WIDTH / 2.0);
                 transform.set_translation_y(ARENA_HEIGHT / 2.0);
             }

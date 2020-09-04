@@ -1,9 +1,8 @@
 [package]
 name = "ameeeethyst"
 version = "0.1.0"
-authors = ["Jordan Majd <jordan@madtitanstudios.com>"]
+authors = ["Jordan Majd <me@jordanmajd.com>"]
 edition = "2018"
-
 
 [dependencies]
 [dependencies.amethyst]

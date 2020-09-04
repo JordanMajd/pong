@@ -1,8 +1,8 @@
-# Amethyst
-
+# Tennis
 
 ## TODO
 
+- renamee to tennis
 - Main Menu State
 - Game Over State
 - Pause Menu Text

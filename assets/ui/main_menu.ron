@@ -1,0 +1,143 @@
+#![enable(implicit_some)]
+Container(
+    transform: (
+        id: "background",
+        anchor: Middle,
+        stretch: XY( x_margin: 0., y_margin: 0., keep_aspect_ratio: false),
+        width: 20.,
+        height: 20.,
+    ),
+    background: SolidColor(0.6, 0.6, 1.0, 0.8),
+    children: [
+        Label(
+            transform: (
+                id: "title",
+                x: 0.,
+                y: -100,
+                width: 500.,
+                height: 50.,
+                anchor: TopMiddle,
+                opaque: false,
+            ),
+            text: (
+                text: "Planetary Pong",
+                font: File("font/square.ttf", ("TTF", ())),
+                font_size: 50.,
+                color: (1.0, 1.0, 1.0, 1.0),
+            ),
+        ),
+        Label(
+            transform: (
+                id: "player_select_text",
+                x: 0.,
+                y: -300.,
+                width: 300.,
+                height: 25.,
+                tab_order: 2,
+                anchor: TopMiddle,
+                opaque: false,
+            ),
+            text: (
+                text: "Select Player Count",
+                font: File("font/square.ttf", ("TTF", ())),
+                font_size: 25.,
+                color: (1.0, 1.0, 1.0, 1.0),
+            ),
+        ),
+        Button(
+            transform: (
+                id: "zero_player_button",
+                x: -45.,
+                y: -400.,
+                width: 30.,
+                height: 30.,
+                tab_order: 1,
+                anchor: TopMiddle,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "0",
+                font: File("font/square.ttf", ("TTF", ())),
+                font_size: 20.,
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                normal_image: SolidColor(0.82, 0.83, 0.83, 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "one_player_button",
+                x: 0.,
+                y: -400.,
+                width: 30.,
+                height: 30.,
+                tab_order: 2,
+                anchor: TopMiddle,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "1",
+                font: File("font/square.ttf", ("TTF", ())),
+                font_size: 20.,
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                normal_image: SolidColor(0.82, 0.83, 0.83, 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "two_player_button",
+                x: 45.,
+                y: -400.,
+                width: 30.,
+                height: 30.,
+                tab_order: 3,
+                anchor: TopMiddle,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "2",
+                font: File("font/square.ttf", ("TTF", ())),
+                font_size: 20.,
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                normal_image: SolidColor(0.82, 0.83, 0.83, 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "settings_button",
+                x: 0.,
+                y: -450.,
+                width: 120.,
+                height: 30.,
+                tab_order: 4,
+                anchor: TopMiddle,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Settings",
+                font: File("font/square.ttf", ("TTF", ())),
+                font_size: 20.,
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                normal_image: SolidColor(0.82, 0.83, 0.83, 1.0),
+            )
+        ),
+        Button(
+            transform: (
+                id: "exit_button",
+                x: 0.,
+                y: -500.,
+                width: 120.,
+                height: 30.,
+                tab_order: 5,
+                anchor: TopMiddle,
+                mouse_reactive: true,
+            ),
+            button: (
+                text: "Exit",
+                font: File("font/square.ttf", ("TTF", ())),
+                font_size: 20.,
+                normal_text_color: (0.0, 0.0, 0.0, 1.0),
+                normal_image: SolidColor(0.82, 0.83, 0.83, 1.0),
+            )
+        ),
+    ],
+)

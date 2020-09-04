@@ -1,7 +1,7 @@
 use amethyst::{
     assets::Handle,
     core::transform::Transform,
-    ecs::{Component, DenseVecStorage},
+    ecs::{Component, DenseVecStorage, Entity},
     prelude::*,
     renderer::{SpriteRender, SpriteSheet},
 };
@@ -11,7 +11,7 @@ use crate::pong::{ARENA_HEIGHT, ARENA_WIDTH};
 
 pub const PADDLE_HEIGHT: f32 = 16.0;
 pub const PADDLE_WIDTH: f32 = 4.0;
-pub const PADDLE_VELOCITY: f32 = 45.0;
+pub const PADDLE_VELOCITY: f32 = 180.0;
 
 #[derive(PartialEq, Eq)]
 pub enum Side {
@@ -41,7 +41,7 @@ impl Component for Paddle {
     type Storage = DenseVecStorage<Self>;
 }
 
-pub fn init_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>) {
+pub fn init_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>, num_players: u8) {
     let mut left_transform = Transform::default();
     let mut right_transform = Transform::default();
 
@@ -51,21 +51,44 @@ pub fn init_paddles(world: &mut World, sprite_sheet_handle: Handle<SpriteSheet>)
 
     let sprite_render = SpriteRender::new(sprite_sheet_handle, 0);
 
-    world
-        .create_entity()
-        .with(sprite_render.clone())
-        .with(Paddle::new(Side::Left))
-        // .with(AI {
-        //     velocity: 0.0,
-        // })
-        .with(left_transform)
-        .build();
+    if num_players == 0 {
+        get_ai_paddle(world, sprite_render.clone(), left_transform, Side::Left)
+    } else {
+        get_paddle(world, sprite_render.clone(), left_transform, Side::Left)
+    };
 
+    if num_players <= 1 {
+        get_ai_paddle(world, sprite_render, right_transform, Side::Right)
+    } else {
+        get_paddle(world, sprite_render, right_transform, Side::Right)
+    };
+}
+
+fn get_ai_paddle(
+    world: &mut World,
+    sprite_render: SpriteRender,
+    transform: Transform,
+    side: Side,
+) -> Entity {
     world
         .create_entity()
         .with(sprite_render)
-        .with(Paddle::new(Side::Right))
+        .with(Paddle::new(side))
+        .with(transform)
         .with(AI)
-        .with(right_transform)
-        .build();
+        .build()
+}
+
+fn get_paddle(
+    world: &mut World,
+    sprite_render: SpriteRender,
+    transform: Transform,
+    side: Side,
+) -> Entity {
+    world
+        .create_entity()
+        .with(sprite_render)
+        .with(Paddle::new(side))
+        .with(transform)
+        .build()
 }
