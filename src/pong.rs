@@ -1,12 +1,12 @@
 use amethyst::{
     assets::{AssetStorage, Handle, Loader, ProgressCounter},
     audio::AudioSink,
-    core::{timing::Time, transform::Transform, ArcThreadPool, Hidden, HiddenPropagate},
+    core::{timing::Time, transform::Transform, ArcThreadPool, HiddenPropagate},
     ecs::{Dispatcher, DispatcherBuilder, Entity},
     input::{is_key_down, VirtualKeyCode},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteSheet, SpriteSheetFormat, Texture},
-    ui::{UiCreator, UiEvent, UiEventType, UiFinder, UiPrefab, UiTransform},
+    ui::{UiCreator, UiEvent, UiEventType, UiFinder, UiPrefab},
 };
 
 use crate::audio::init_audio;
@@ -137,7 +137,9 @@ fn transiton_game_state(world: &mut World, num_players: u8) -> SimpleTrans {
 fn hide_ui(world: &mut World, name: &str) {
     let ui_entity = world.exec(|ui_finder: UiFinder<'_>| ui_finder.find(name));
     if let Some(ent) = ui_entity {
-        let _ = world.write_storage::<HiddenPropagate>().insert(ent, HiddenPropagate::new());
+        let _ = world
+            .write_storage::<HiddenPropagate>()
+            .insert(ent, HiddenPropagate::new());
     }
 }
 

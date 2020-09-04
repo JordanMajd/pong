@@ -1,3 +1,4 @@
+use crate::pong::{ARENA_HEIGHT, ARENA_WIDTH};
 use amethyst::{
     assets::Handle,
     core::transform::Transform,
@@ -5,7 +6,6 @@ use amethyst::{
     prelude::*,
     renderer::{SpriteRender, SpriteSheet},
 };
-use crate::pong::{ARENA_HEIGHT, ARENA_WIDTH};
 
 pub const BALL_VELOCITY_X: f32 = 75.0 * 2.;
 pub const BALL_VELOCITY_Y: f32 = 50.0 * 2.;

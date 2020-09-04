@@ -1,5 +1,5 @@
 use amethyst::{
-    assets::{ProgressCounter, AssetStorage, Loader},
+    assets::{AssetStorage, Loader, ProgressCounter},
     audio::{output::Output, AudioSink, OggFormat, Source, SourceHandle},
     ecs::{World, WorldExt},
 };
@@ -22,7 +22,12 @@ pub struct Music {
     pub music: Cycle<IntoIter<SourceHandle>>,
 }
 
-fn load_audio_track(loader: &Loader, progress: &mut ProgressCounter, world: &World, file: &str) -> SourceHandle {
+fn load_audio_track(
+    loader: &Loader,
+    progress: &mut ProgressCounter,
+    world: &World,
+    file: &str,
+) -> SourceHandle {
     loader.load(file, OggFormat, progress, &world.read_resource())
 }
 

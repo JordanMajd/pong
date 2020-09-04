@@ -2,7 +2,7 @@ use amethyst::{
     core::timing::Time,
     core::transform::Transform,
     derive::SystemDesc,
-    ecs::{Join, Read, ReadStorage, System, SystemData, WriteStorage, Entity},
+    ecs::{Entity, Join, Read, ReadStorage, System, SystemData, WriteStorage},
 };
 
 use crate::components::ball::{Ball, Dead};
