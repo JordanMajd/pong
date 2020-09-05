@@ -26,3 +26,8 @@ Overly complicated pong clone using Amethyst.
 Examples:
 
 - [Pong w/ Gamestates](https://github.com/fosskers/pong-amethyst/blob/master/src/lib.rs)
+
+
+## [License]
+
+- [MIT]
