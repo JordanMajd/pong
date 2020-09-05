@@ -1,5 +1,7 @@
 # Tennis
 
+Overly complicated pong clone using Amethyst.
+
 ## TODO
 
 - reimplement scoring
