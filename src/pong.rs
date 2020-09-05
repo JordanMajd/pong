@@ -1,69 +1,76 @@
 use amethyst::{
-    assets::{AssetStorage, Handle, Loader, ProgressCounter},
+    assets::{AssetStorage, Completion, Handle, Loader, ProgressCounter},
     audio::AudioSink,
     core::{timing::Time, transform::Transform, ArcThreadPool, HiddenPropagate},
     ecs::{Dispatcher, DispatcherBuilder, Entity},
     input::{is_key_down, VirtualKeyCode},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteSheet, SpriteSheetFormat, Texture},
-    ui::{UiCreator, UiEvent, UiEventType, UiFinder, UiPrefab},
+    ui::{UiCreator, UiEvent, UiEventType, UiFinder, UiLoader},
 };
 
 use crate::audio::init_audio;
 use crate::components::ball::init_ball;
 use crate::components::paddle::init_paddles;
-use crate::components::scoreboard::init_scoreboard;
-
+// use crate::components::scoreboard::ScoreBoard;
+use crate::event::GameEvent;
+use crate::game_data::NiceGameData;
 use crate::systems;
 
 pub const ARENA_HEIGHT: f32 = 200.0;
 pub const ARENA_WIDTH: f32 = 200.0;
 
 #[derive(Default)]
-pub struct UI {
-    pub loading_menu: Option<Handle<UiPrefab>>,
-    pub main_menu: Option<Entity>,
-    pub pause_menu: Option<Handle<UiPrefab>>,
-    pub settings_menu: Option<Handle<UiPrefab>>,
-    pub scoreboard: Option<Handle<UiPrefab>>,
+pub struct LoadingState {
+    pub progress_counter: ProgressCounter,
 }
 
-#[derive(Default)]
-pub struct LoadingState {
-    progress_counter: ProgressCounter,
-}
-impl SimpleState for LoadingState {
-    fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
-        let mut ui = UI::default();
-        ui.main_menu = Some(data.world.exec(|mut creator: UiCreator<'_>| {
+impl<'a, 'b> State<NiceGameData<'a, 'b>, GameEvent> for LoadingState {
+    fn on_start(&mut self, data: StateData<'_, NiceGameData<'a, 'b>>) {
+        data.world.exec(|mut creator: UiCreator<'_>| {
             creator.create("ui/main_menu.ron", &mut self.progress_counter)
-        }));
+        });
+        let handle = data.world.exec(|loader: UiLoader<'_>| {
+            loader.load("ui/scoreboard.ron", &mut self.progress_counter)
+        });
+        data.world.insert(handle);
         init_audio(data.world, &mut self.progress_counter);
-        data.world.insert(ui);
     }
 
-    fn update(&mut self, _data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
-        if self.progress_counter.is_complete() {
-            Trans::Switch(Box::new(MainMenuState::default()))
-        } else {
-            Trans::None
+    fn handle_event(
+        &mut self,
+        _data: StateData<'_, NiceGameData<'a, 'b>>,
+        _event: GameEvent,
+    ) -> Trans<NiceGameData<'a, 'b>, GameEvent> {
+        Trans::None
+    }
+
+    fn update(
+        &mut self,
+        data: StateData<'_, NiceGameData<'a, 'b>>,
+    ) -> Trans<NiceGameData<'a, 'b>, GameEvent> {
+        data.data.update(data.world);
+        match self.progress_counter.complete() {
+            Completion::Complete => Trans::Switch(Box::new(MainMenuState::default())),
+            Completion::Failed => Trans::Quit,
+            Completion::Loading => Trans::None,
         }
     }
 }
 
 #[derive(Default)]
-pub struct MainMenuState<'a, 'b> {
-    dispatcher: Option<Dispatcher<'a, 'b>>,
+pub struct MainMenuState<'x, 'y> {
+    dispatcher: Option<Dispatcher<'x, 'y>>,
     entities: Vec<Entity>,
     zero_player_button: Option<Entity>,
     one_player_button: Option<Entity>,
     two_player_button: Option<Entity>,
     settings_button: Option<Entity>,
 }
-impl<'a, 'b> SimpleState for MainMenuState<'a, 'b> {
-    fn on_start(&mut self, mut data: StateData<'_, GameData<'_, '_>>) {
-        let world = &mut data.world;
 
+impl<'a, 'b> State<NiceGameData<'a, 'b>, GameEvent> for MainMenuState<'_, '_> {
+    fn on_start(&mut self, mut data: StateData<'_, NiceGameData<'_, '_>>) {
+        let world = &mut data.world;
         let dispatcher_builder = DispatcherBuilder::new();
         // reuse main thread pool
         let mut dispatcher = dispatcher_builder
@@ -78,14 +85,19 @@ impl<'a, 'b> SimpleState for MainMenuState<'a, 'b> {
             self.two_player_button = ui_finder.find("two_player_button");
             self.settings_button = ui_finder.find("settings_button");
         });
+
         init_camera(world);
     }
 
-    fn on_stop(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+    fn on_stop(&mut self, data: StateData<'_, NiceGameData<'_, '_>>) {
         let _ = data.world.delete_entities(&self.entities);
     }
 
-    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
+    fn update(
+        &mut self,
+        data: StateData<'_, NiceGameData<'a, 'b>>,
+    ) -> Trans<NiceGameData<'a, 'b>, GameEvent> {
+        data.data.update(data.world);
         if let Some(dispatcher) = self.dispatcher.as_mut() {
             dispatcher.dispatch(&data.world);
         }
@@ -94,18 +106,18 @@ impl<'a, 'b> SimpleState for MainMenuState<'a, 'b> {
 
     fn handle_event(
         &mut self,
-        data: StateData<'_, GameData<'_, '_>>,
-        event: StateEvent,
-    ) -> SimpleTrans {
+        data: StateData<'_, NiceGameData<'a, 'b>>,
+        event: GameEvent,
+    ) -> Trans<NiceGameData<'a, 'b>, GameEvent> {
         match event {
-            StateEvent::Window(win_event) => {
+            GameEvent::Window(win_event) => {
                 if is_key_down(&win_event, VirtualKeyCode::Return) {
-                    Trans::Replace(Box::new(GameplayState::default()))
+                    transiton_game_state(data.world, 0)
                 } else {
                     Trans::None
                 }
             }
-            StateEvent::Ui(UiEvent {
+            GameEvent::Ui(UiEvent {
                 event_type: UiEventType::Click,
                 target,
             }) => {
@@ -126,33 +138,16 @@ impl<'a, 'b> SimpleState for MainMenuState<'a, 'b> {
     }
 }
 
-fn transiton_game_state(world: &mut World, num_players: u8) -> SimpleTrans {
-    hide_ui(world, "main_menu_container");
-    Trans::Replace(Box::new(GameplayState {
-        num_players: num_players,
-        ..GameplayState::default()
-    }))
-}
-
-fn hide_ui(world: &mut World, name: &str) {
-    let ui_entity = world.exec(|ui_finder: UiFinder<'_>| ui_finder.find(name));
-    if let Some(ent) = ui_entity {
-        let _ = world
-            .write_storage::<HiddenPropagate>()
-            .insert(ent, HiddenPropagate::new());
-    }
-}
-
 #[derive(Default)]
-pub struct GameplayState<'a, 'b> {
-    dispatcher: Option<Dispatcher<'a, 'b>>,
+pub struct GameplayState<'x, 'y> {
+    dispatcher: Option<Dispatcher<'x, 'y>>,
     sprite_sheet_handle: Option<Handle<SpriteSheet>>,
     ball_spawn_timer: Option<f32>,
     num_players: u8,
 }
-impl<'a, 'b> SimpleState for GameplayState<'a, 'b> {
-    fn on_start(&mut self, mut data: StateData<'_, GameData<'_, '_>>) {
-        let world = &mut data.world;
+impl<'a, 'b> State<NiceGameData<'a, 'b>, GameEvent> for GameplayState<'_, '_> {
+    fn on_start(&mut self, data: StateData<'_, NiceGameData<'a, 'b>>) {
+        let world = data.world;
 
         let mut dispatcher_builder = DispatcherBuilder::new();
         dispatcher_builder.add(systems::PaddleSystem, systems::PADDLE_SYSTEM, &[]);
@@ -163,8 +158,8 @@ impl<'a, 'b> SimpleState for GameplayState<'a, 'b> {
             &[systems::PADDLE_SYSTEM, systems::BALL_MOVE_SYSTEM],
         );
         dispatcher_builder.add(
-            systems::WinnerSystem,
-            "winner_system",
+            systems::ScoreSystem,
+            systems::SCORE_SYSTEM,
             &[systems::BALL_MOVE_SYSTEM],
         );
         dispatcher_builder.add(systems::AIBigBrainSystem, "ai_big_brain_system", &[]);
@@ -188,15 +183,20 @@ impl<'a, 'b> SimpleState for GameplayState<'a, 'b> {
             self.sprite_sheet_handle.clone().unwrap(),
             self.num_players,
         );
-        init_scoreboard(world);
         self.ball_spawn_timer.replace(1.0);
+
+        // world.create_entity().with(ScoreBoard::new()).build();
     }
 
-    fn on_resume(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+    fn on_resume(&mut self, data: StateData<'_, NiceGameData<'a, 'b>>) {
         data.world.read_resource::<AudioSink>().play();
     }
 
-    fn update(&mut self, data: &mut StateData<'_, GameData<'_, '_>>) -> SimpleTrans {
+    fn update(
+        &mut self,
+        data: StateData<'_, NiceGameData<'a, 'b>>,
+    ) -> Trans<NiceGameData<'a, 'b>, GameEvent> {
+        data.data.update(data.world);
         if let Some(mut timer) = self.ball_spawn_timer.take() {
             {
                 let time = data.world.fetch::<Time>();
@@ -216,35 +216,51 @@ impl<'a, 'b> SimpleState for GameplayState<'a, 'b> {
 
     fn handle_event(
         &mut self,
-        _data: StateData<'_, GameData<'_, '_>>,
-        event: StateEvent,
-    ) -> SimpleTrans {
-        if let StateEvent::Window(event) = &event {
-            if is_key_down(&event, VirtualKeyCode::Escape) {
-                return Trans::Push(Box::new(PauseState));
+        _data: StateData<'_, NiceGameData<'a, 'b>>,
+        event: GameEvent,
+    ) -> Trans<NiceGameData<'a, 'b>, GameEvent> {
+        match event {
+            GameEvent::Window(win_event) => {
+                if is_key_down(&win_event, VirtualKeyCode::Escape) {
+                    Trans::Push(Box::new(PauseState))
+                } else {
+                    Trans::None
+                }
             }
+            _ => Trans::None,
         }
-        Trans::None
     }
 }
 
 struct PauseState;
-impl SimpleState for PauseState {
-    fn on_start(&mut self, data: StateData<GameData>) {
+impl<'a, 'b> State<NiceGameData<'a, 'b>, GameEvent> for PauseState {
+    fn on_start(&mut self, data: StateData<'_, NiceGameData<'a, 'b>>) {
         data.world.read_resource::<AudioSink>().pause();
+    }
+
+    fn update(
+        &mut self,
+        data: StateData<'_, NiceGameData<'a, 'b>>,
+    ) -> Trans<NiceGameData<'a, 'b>, GameEvent> {
+        data.data.update(data.world);
+        Trans::None
     }
 
     fn handle_event(
         &mut self,
-        _data: StateData<'_, GameData<'_, '_>>,
-        event: StateEvent,
-    ) -> SimpleTrans {
-        if let StateEvent::Window(event) = &event {
-            if is_key_down(&event, VirtualKeyCode::Escape) {
-                return Trans::Pop;
+        _data: StateData<'_, NiceGameData<'a, 'b>>,
+        event: GameEvent,
+    ) -> Trans<NiceGameData<'a, 'b>, GameEvent> {
+        match event {
+            GameEvent::Window(win_event) => {
+                if is_key_down(&win_event, VirtualKeyCode::Escape) {
+                    Trans::Pop
+                } else {
+                    Trans::None
+                }
             }
+            _ => Trans::None,
         }
-        Trans::None
     }
 }
 
@@ -278,4 +294,24 @@ fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
         (),
         &sprite_sheet_store,
     )
+}
+
+fn transiton_game_state<'a, 'b>(
+    world: &mut World,
+    num_players: u8,
+) -> Trans<NiceGameData<'a, 'b>, GameEvent> {
+    hide_ui(world, "main_menu_root");
+    Trans::Replace(Box::new(GameplayState {
+        num_players: num_players,
+        ..GameplayState::default()
+    }))
+}
+
+fn hide_ui(world: &mut World, name: &str) {
+    let ui_entity = world.exec(|ui_finder: UiFinder<'_>| ui_finder.find(name));
+    if let Some(ent) = ui_entity {
+        let _ = world
+            .write_storage::<HiddenPropagate>()
+            .insert(ent, HiddenPropagate::new());
+    }
 }

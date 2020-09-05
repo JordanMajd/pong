@@ -2,7 +2,7 @@ use amethyst::{
     core::timing::Time,
     core::transform::Transform,
     derive::SystemDesc,
-    ecs::{Entity, Join, Read, ReadStorage, System, SystemData, WriteStorage},
+    ecs::{Join, Read, ReadStorage, System, SystemData, WriteStorage},
 };
 
 use crate::components::ball::{Ball, Dead};
@@ -20,8 +20,8 @@ impl<'s> System<'s> for BallMoveSystem {
 
     fn run(&mut self, (balls, mut locals, deads, time): Self::SystemData) {
         for (ball, local, ()) in (&balls, &mut locals, !&deads).join() {
-            local.prepend_translation_x(ball.velocity[0] * time.delta_seconds());
-            local.prepend_translation_y(ball.velocity[1] * time.delta_seconds());
+            local.prepend_translation_x(ball.velocity[0] * 1.01 * time.delta_seconds());
+            local.prepend_translation_y(ball.velocity[1] * 1.01 * time.delta_seconds());
         }
     }
 }

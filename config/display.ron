@@ -1,4 +1,4 @@
 (
-	title: "Pong",
+	title: "Planetary Pong",
 	dimensions: Some((720, 720)),
 )

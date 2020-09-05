@@ -2,6 +2,8 @@
 
 ## TODO
 
+- reimplement scoring
+- handle window resizing, keep aspect ratio
 - renamee to tennis
 - Main Menu State
 - Game Over State

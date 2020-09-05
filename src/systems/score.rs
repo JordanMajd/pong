@@ -3,25 +3,21 @@ use amethyst::{
     audio::{output::Output, Source},
     core::transform::Transform,
     derive::SystemDesc,
-    ecs::{Join, Read, ReadExpect, System, SystemData, Write, WriteStorage},
-    ui::UiText,
+    ecs::{Join, Read, ReadExpect, System, SystemData, WriteStorage},
 };
 
 use crate::audio::{play_score_sound, Sounds};
-use crate::components::ball::Ball;
-use crate::components::scoreboard::{ScoreBoard, ScoreText};
+use crate::components::ball::{Ball, BALL_VELOCITY_X, BALL_VELOCITY_Y};
+// use crate::components::scoreboard::{ScoreBoard};
 use crate::pong::{ARENA_HEIGHT, ARENA_WIDTH};
 
 #[derive(SystemDesc)]
-pub struct WinnerSystem;
-
-impl<'s> System<'s> for WinnerSystem {
+pub struct ScoreSystem;
+pub const SCORE_SYSTEM: &str = "score_system";
+impl<'s> System<'s> for ScoreSystem {
     type SystemData = (
         WriteStorage<'s, Ball>,
         WriteStorage<'s, Transform>,
-        WriteStorage<'s, UiText>,
-        Write<'s, ScoreBoard>,
-        ReadExpect<'s, ScoreText>,
         Read<'s, AssetStorage<Source>>,
         ReadExpect<'s, Sounds>,
         Option<Read<'s, Output>>,
@@ -29,21 +25,15 @@ impl<'s> System<'s> for WinnerSystem {
 
     fn run(
         &mut self,
-        (mut balls, mut locals, mut ui_text, mut scores, score_text, storage, sounds, audio_output): Self::SystemData,
+        (mut balls, mut locals, storage, sounds, audio_output): Self::SystemData,
     ) {
         for (ball, transform) in (&mut balls, &mut locals).join() {
             let bx = transform.translation().x;
             let did_hit = if bx <= ball.radius {
-                scores.score_right = (scores.score_right + 1).min(999);
-                if let Some(text) = ui_text.get_mut(score_text.p2_score) {
-                    text.text = scores.score_right.to_string();
-                }
+                // TODO triggre score event
                 true
             } else if bx >= ARENA_WIDTH - ball.radius {
-                scores.score_left = (scores.score_left + 1).min(999);
-                if let Some(text) = ui_text.get_mut(score_text.p1_score) {
-                    text.text = scores.score_left.to_string();
-                }
+                // TODO trigger score event
                 true
             } else {
                 false
@@ -51,7 +41,10 @@ impl<'s> System<'s> for WinnerSystem {
 
             if did_hit {
                 play_score_sound(&*sounds, &storage, audio_output.as_deref());
-                ball.velocity[0] = -ball.velocity[0];
+
+                ball.velocity[0] = BALL_VELOCITY_X * ball.velocity[0].min(-1.).max(1.);
+                ball.velocity[1] = BALL_VELOCITY_Y * ball.velocity[1].min(-1.).max(1.);
+
                 transform.set_translation_x(ARENA_WIDTH / 2.0);
                 transform.set_translation_y(ARENA_HEIGHT / 2.0);
             }

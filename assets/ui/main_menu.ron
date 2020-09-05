@@ -1,7 +1,7 @@
 #![enable(implicit_some)]
 Container(
     transform: (
-        id: "main_menu_container",
+        id: "main_menu_root",
         anchor: Middle,
         stretch: XY( x_margin: 0., y_margin: 0., keep_aspect_ratio: false),
         width: 20.,

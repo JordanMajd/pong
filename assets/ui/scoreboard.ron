@@ -1,0 +1,48 @@
+#![enable(implicit_some)]
+Container(
+    transform: (
+        id: "scoreboard_root",
+        anchor: Middle,
+        stretch: XY( x_margin: 0., y_margin: 0., keep_aspect_ratio: false),
+        width: 20.,
+        height: 20.,
+        opaque: true,
+    ),
+    background: SolidColor(0.6, 0.6, 1.0, 0.8),
+    children: [
+        Label(
+            transform: (
+                id: "player_left_score",
+                x: -50.,
+                y: -50,
+                width: 150.,
+                height: 50.,
+                anchor: TopMiddle,
+                opaque: true,
+            ),
+            text: (
+                text: "0",
+                font: File("font/square.ttf", ("TTF", ())),
+                font_size: 50.,
+                color: (1.0, 1.0, 1.0, 1.0),
+            ),
+        ),
+        Label(
+            transform: (
+                id: "player_left_score",
+                x: 50.,
+                y: -50,
+                width: 150.,
+                height: 50.,
+                anchor: TopMiddle,
+                opaque: true,
+            ),
+            text: (
+                text: "0",
+                font: File("font/square.ttf", ("TTF", ())),
+                font_size: 50.,
+                color: (1.0, 1.0, 1.0, 1.0),
+            ),
+        ),
+    ],
+)

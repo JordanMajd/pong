@@ -13,7 +13,7 @@ pub const PADDLE_HEIGHT: f32 = 16.0;
 pub const PADDLE_WIDTH: f32 = 4.0;
 pub const PADDLE_VELOCITY: f32 = 180.0;
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub enum Side {
     Left,
     Right,
